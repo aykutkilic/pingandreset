@@ -8,6 +8,7 @@ from fritzconnection import FritzConnection
 
 ROUTER_IP = '192.168.178.1'
 PING_EVERY_N_MINUTES = 5
+RESET_EVERYDAY_AT = "05:00"
 WEB_SITES = ['www.google.com', 'www.facebook.com', 'www.instagram.com']
 
 def website_isalive(url):
@@ -38,6 +39,8 @@ def check_if_connection_is_alive():
 
 schedule.every(PING_EVERY_N_MINUTES).minutes.do(check_if_connection_is_alive)
 schedule.every(1).minute.do(print_dot)
+if RESET_EVERYDAY_AT is not None:
+    schedule.every().day.at(RESET_EVERYDAY_AT).do(check_if_connection_is_alive)
 
 print('Starting scheduler')
 
