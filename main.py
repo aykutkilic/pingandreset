@@ -16,7 +16,7 @@ PING_EVERY_N_MINUTES = 5
 DELAY_AFTER_RESET_MIN = 5
 RESET_EVERYDAY_AT = None
 WEB_SITES = ['www.google.com', 'www.facebook.com', 'www.instagram.com']
-PUSHBULLET_API_KEY = os.environ('PUSHBULLET_API_KEY')
+PUSHBULLET_API_KEY = os.environ.get('PUSHBULLET_API_KEY')
 PUSHBULLET_MSG_TITLE = 'Router failure'
 REBOOT_OVER_RECONNECT = True
 
