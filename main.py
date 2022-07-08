@@ -2,20 +2,35 @@ import schedule
 import time
 from icmplib import ping, NameLookupError
 from fritzconnection import FritzConnection
+from pushbullet import Pushbullet
+import os
 
 # before running this script please execute
-# pip install schedule icmplib fritzconnection
+# pip install schedule icmplib fritzconnection pushbullet.py
+# set PUSHBULLET_API_KEY=<your api key here>
 
 ROUTER_IP = '192.168.178.1'
 PING_EVERY_N_MINUTES = 5
 RESET_EVERYDAY_AT = "05:00"
 WEB_SITES = ['www.google.com', 'www.facebook.com', 'www.instagram.com']
+PUSHBULLET_API_KEY = os.environ('PUSHBULLET_API_KEY')
+PUSHBULLET_MSG_TITLE = 'Router failure'
+REBOOT_OVER_RECONNECT = True
+
+pushBulletApi = Pushbullet(PUSHBULLET_API_KEY)
+
+
+def push_note(title, body):
+    global pushBulletApi
+    push = pushBulletApi.push_note(title, body)
+
 
 def website_isalive(url):
     try:
         return ping(url).is_alive
     except NameLookupError as e:
         print(f'Invalid URL {url}')
+
 
 def print_dot():
     print('.', end='')
@@ -34,7 +49,17 @@ def check_if_connection_is_alive():
 
     # if all are dead
     fc = FritzConnection(address=ROUTER_IP)
-    fc.reconnect()  # get a new external ip from the provider
+
+    action = 'Reboot' if REBOOT_OVER_RECONNECT else 'Reconnect'
+    message = f'{action}ing router at address {ROUTER_IP}'
+
+    if REBOOT_OVER_RECONNECT:
+        fc.reboot()  # reboot the router
+    else:
+        fc.reconnect()  # get a new external ip from the provider
+
+    if PUSHBULLET_API_KEY is not None:
+        push_note(PUSHBULLET_MSG_TITLE, message)
 
 
 schedule.every(PING_EVERY_N_MINUTES).minutes.do(check_if_connection_is_alive)
