@@ -44,6 +44,13 @@ def check_if_connection_is_alive():
     global WEB_SITES
     global ROUTER_IP
 
+    now = datetime.datetime.now()
+    if lastResetTime is not None:
+        delta = (now - lastResetTime).total_seconds() / 60.0
+        if delta <= DELAY_AFTER_RESET_MIN:
+            print(f'Skipping check as dt is {delta}<{DELAY_AFTER_RESET_MIN}')
+            return
+
     print('Checking if connection is OK')
     status = FritzStatus(address=ROUTER_IP)
     external_ip = '??'
@@ -60,12 +67,6 @@ def check_if_connection_is_alive():
 
     # if all are dead
     print('Connection is dead')
-    now = datetime.datetime.now()
-    if lastResetTime is not None:
-        delta = (now - lastResetTime).total_seconds() / 60.0
-        if delta <= DELAY_AFTER_RESET_MIN:
-            print(f'Skipping reset as dt is {delta}<{DELAY_AFTER_RESET_MIN}')
-            return
 
     fc = FritzConnection(address=ROUTER_IP)
     action = 'Reboot' if REBOOT_OVER_RECONNECT else 'Reconnect'
@@ -76,6 +77,8 @@ def check_if_connection_is_alive():
     else:
         fc.reconnect()  # get a new external ip from the provider
 
+    lastResetTime = datetime.datetime.now()
+    
     print(message)
     if PUSHBULLET_API_KEY is not None:
         push_note(PUSHBULLET_MSG_TITLE, message)
